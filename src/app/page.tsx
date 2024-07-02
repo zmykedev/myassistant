@@ -1,12 +1,13 @@
 "use client"; // Indicates that this file is a client-side module
 
 import React, { useState } from "react";
-import Header from "./components/Header";
-import { TodoList } from "./components/TodoList";
+import Header from "../components/Header";
+import { TodoList } from "../components/TodoList";
 import { CopilotKit } from "@copilotkit/react-core";
-import { CopilotPopup, CopilotSidebar } from "@copilotkit/react-ui";
+import { CopilotSidebar } from "@copilotkit/react-ui";
 import "@copilotkit/react-ui/styles.css";
-import DateComponent from "./components/Date";
+import DateComponent from "../components/Date";
+import "../styles/globals.css";
 
 export default function Home() {
   const [date, setDate] = useState(new Date());

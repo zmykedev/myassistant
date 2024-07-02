@@ -4,4 +4,5 @@ export interface Todo {
   isCompleted: boolean;
   assignedTo?: string;
   day?: string;
+  repoName?: string;
 }

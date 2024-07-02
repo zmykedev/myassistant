@@ -3,7 +3,7 @@
 import { TodoItem } from "./TodoItem"; // Importing the TodoItem component
 import { nanoid } from "nanoid"; // Importing the nanoid library for generating unique IDs
 import { useState, useCallback } from "react"; // Importing the useState hook from React
-import { Todo } from "../types/todo"; // Importing the Todo type
+import { Todo } from "../app/types/todo"; // Importing the Todo type
 import { useCopilotAction, useCopilotReadable } from "@copilotkit/react-core";
 
 interface TodoListProps {
@@ -14,11 +14,19 @@ export const TodoList: React.FC<TodoListProps> = ({ selectedDate }) => {
   const [todosByDate, setTodosByDate] = useState<{ [date: string]: Todo[] }>(
     {}
   );
+  const [repoName, setRepoName] = useState("");
   const [input, setInput] = useState("");
+
+  const today = new Date().toISOString().split("T")[0];
 
   useCopilotReadable({
     description: "The user's todo list.",
     value: todosByDate,
+  });
+
+  useCopilotReadable({
+    description: "The user's todo repository name",
+    value: repoName,
   });
 
   useCopilotAction({
@@ -53,7 +61,13 @@ export const TodoList: React.FC<TodoListProps> = ({ selectedDate }) => {
           {
             name: "day",
             type: "string",
-            description: "The day of the todo item in 'YYYY-MM-DD' format.",
+            description: `The day of the todo item in 'YYYY-MM-DD' format, if no date is assigned, automatically assign ${today}.`,
+            optional: true,
+          },
+          {
+            name: "repoName",
+            type: "string",
+            description: "The name of the repository of the todo item.",
           },
         ],
       },
@@ -62,16 +76,17 @@ export const TodoList: React.FC<TodoListProps> = ({ selectedDate }) => {
       setTodosByDate((prev) => {
         const newTodosByDate = { ...prev };
         items.forEach((item) => {
-          if (!newTodosByDate[item.day]) {
-            newTodosByDate[item.day] = [];
+          const dateKey = item.day;
+          if (!newTodosByDate[dateKey]) {
+            newTodosByDate[dateKey] = [];
           }
-          const existingItemIndex = newTodosByDate[item.day].findIndex(
+          const existingItemIndex = newTodosByDate[dateKey].findIndex(
             (todo) => todo.id === item.id
           );
           if (existingItemIndex !== -1) {
-            newTodosByDate[item.day][existingItemIndex] = item;
+            newTodosByDate[dateKey][existingItemIndex] = item;
           } else {
-            newTodosByDate[item.day].push(item);
+            newTodosByDate[dateKey].push(item);
           }
         });
         return newTodosByDate;
@@ -111,6 +126,7 @@ export const TodoList: React.FC<TodoListProps> = ({ selectedDate }) => {
         text: input.trim(),
         isCompleted: false,
         day: selectedDate,
+        repoName: repoName,
       };
       setTodosByDate((prev) => {
         const newTodos = { ...prev };
@@ -118,11 +134,13 @@ export const TodoList: React.FC<TodoListProps> = ({ selectedDate }) => {
           newTodos[selectedDate] = [];
         }
         newTodos[selectedDate] = [...newTodos[selectedDate], newTodo];
+
         return newTodos;
       });
+
       setInput("");
     }
-  }, [input, selectedDate]);
+  }, [input, selectedDate, repoName]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -172,6 +190,7 @@ export const TodoList: React.FC<TodoListProps> = ({ selectedDate }) => {
 
   return (
     <div>
+      {" "}
       <div className="flex mb-4">
         <input
           className="border rounded-md p-2 flex-1 mr-2"
